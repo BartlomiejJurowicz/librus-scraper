@@ -1,0 +1,6 @@
+.env
+__pycache__/
+.venv/
+history.json
+Librus_Pelny_Terminarz.md
+*.png
