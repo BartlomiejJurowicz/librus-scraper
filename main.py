@@ -2,8 +2,8 @@ import json
 import time
 from scraper import get_librus_data
 
-DB_FILE = "history.json"
-MD_FULL_CALENDAR_FILE = "Librus_Pelny_Terminarz.md"
+DB_FILE = "out/history.json"
+MD_FULL_CALENDAR_FILE = "out/Librus_Pelny_Terminarz.md"
 
 
 def load_history():
