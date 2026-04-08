@@ -133,7 +133,7 @@ def get_librus_data():
         login_input.clear()
         login_input.send_keys(os.getenv("LIBRUS_LOGIN"))
         pass_input.clear()
-        pass_input.send_keys(os.getenv("LIBRUS_PAS"))
+        pass_input.send_keys(os.getenv("LIBRUS_PASS"))
 
         login_btn = wait.until(EC.presence_of_element_located((By.ID, "LoginBtn")))
         driver.execute_script("arguments[0].click();", login_btn)
