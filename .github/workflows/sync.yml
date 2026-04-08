@@ -1,0 +1,73 @@
+name: Librus to Obsidian Sync
+
+on:
+  schedule:
+    # Codziennie o 6:00 czasu UTC (czyli 7:00 lub 8:00 w PL)
+    - cron: '0 6 * * *'
+  # Pozwala na ręczne uruchomienie skryptu z poziomu WWW
+  workflow_dispatch:
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Pobieranie repozytorium scrapera
+      uses: actions/checkout@v4
+
+    - name: Konfiguracja Pythona
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Instalacja bibliotek
+      run: pip install -r requirements.txt
+
+    - name: Pobranie bazy history.json z repozytorium Notes
+      run: |
+        curl -H "Authorization: token ${{ secrets.NOTES_REPO_TOKEN }}" \
+             -H "Accept: application/vnd.github.v3.raw" \
+             -o history.json \
+             -L https://api.github.com/repos/BartlomiejJurowicz/Notes/contents/Librus/history.json || echo "{}" > history.json
+
+    - name: Uruchomienie Bota
+      env:
+        LIBRUS_LOGIN: ${{ secrets.LIBRUS_LOGIN }}
+        LIBRUS_PASS: ${{ secrets.LIBRUS_PASS }}
+      run: python main.py
+
+    - name: Przesłanie raportów do repozytorium Notes
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.NOTES_REPO_TOKEN }}
+      run: |
+        git config --global user.email "bot@librus.com"
+        git config --global user.name "Librus Scraper Bot"
+        
+        # Klonowanie repozytorium Notes
+        git clone https://BartlomiejJurowicz:${API_TOKEN_GITHUB}@github.com/BartlomiejJurowicz/Notes.git notes_repo
+        
+        # Utworzenie folderu Librus wewnątrz repozytorium Notes (jeśli nie istnieje)
+        mkdir -p notes_repo/Librus
+        
+        # Kopiowanie plików do folderu
+        cp history.json notes_repo/Librus/
+        cp Librus_Pelny_Terminarz.md notes_repo/Librus/
+        
+        if [ -f "Librus_Update.md" ]; then
+          cp Librus_Update.md notes_repo/Librus/
+        fi
+        
+        cd notes_repo
+        git add Librus/history.json Librus/Librus_Pelny_Terminarz.md
+        
+        if [ -f "Librus/Librus_Update.md" ]; then
+          git add Librus/Librus_Update.md
+        fi
+        
+        # Wypchnięcie zmian
+        if git diff-index --quiet HEAD; then
+          echo "Brak zmian w kalendarzu, nic nie wysyłam."
+        else
+          git commit -m "Aktualizacja terminarza z Librusa: $(date +'%Y-%m-%d')"
+          git push origin main
+        fi
