@@ -34,7 +34,13 @@ jobs:
       env:
         LIBRUS_LOGIN: ${{ secrets.LIBRUS_LOGIN }}
         LIBRUS_PASS: ${{ secrets.LIBRUS_PASS }}
-      run: python main.py
+      run: python main.py  
+    - name: Zapisz zrzut ekranu w razie bledu
+      if: failure() # Ten krok uruchomi sie TYLKO, gdy bot wyrzuci błąd
+      uses: actions/upload-artifact@v4
+      with:
+        name: error-screenshot
+        path: error_headless.png
 
     - name: Przesłanie raportów do repozytorium Notes
       env:
