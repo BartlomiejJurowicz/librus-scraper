@@ -90,14 +90,28 @@ def get_librus_data():
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu") 
+    chrome_options.page_load_strategy = 'eager' # Nie czeka na załadowanie ciężkich reklam
     
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    driver.set_page_load_timeout(30) # Sztywny limit 30 sekund na załadowanie strony
     wait = WebDriverWait(driver, 15)
     
     all_events = []
 
     try:
-        driver.get("https://portal.librus.pl/rodzina")
+        print("-> Próbuję połączyć się z portalem Librus...")
+        # System 3 prób w przypadku opóźnień sieciowych
+        for attempt in range(3):
+            try:
+                driver.get("https://portal.librus.pl/rodzina")
+                break # Sukces, wychodzimy z pętli
+            except Exception as e:
+                print(f"   Próba {attempt + 1}/3 nieudana. Ponawiam za 5 sekund...")
+                time.sleep(5)
+                if attempt == 2:
+                    raise e # Wyrzuca błąd tylko jeśli wszystkie 3 próby zawiodą
+
         time.sleep(2) 
         
         # Agresywne usuwanie ciasteczek
@@ -134,25 +148,20 @@ def get_librus_data():
         pass_input.clear()
         pass_input.send_keys(os.getenv("LIBRUS_PASS"))
         
-        # --- DIAGNOSTYKA I LUDZKIE KLIKNIĘCIE ---
         dlugosc_hasla = len(str(os.getenv("LIBRUS_PASS", "")))
         print(f"-> Zabezpieczenie: Długość przekazanego hasła to {dlugosc_hasla} znaków.")
         
-        time.sleep(1) # Chwila oddechu dla walidacji formularza
-        
-        # Zamiast klikać przycisk, wciskamy ENTER
+        time.sleep(1) 
         pass_input.send_keys(Keys.RETURN)
 
         driver.switch_to.default_content()
         wait.until(EC.url_contains("synergia.librus.pl"))
         
-        # POBIERANIE BIEŻĄCEGO MIESIĄCA
         print("-> Pobieram bieżący miesiąc...")
         driver.get("https://synergia.librus.pl/terminarz")
         wait.until(EC.presence_of_element_located((By.CLASS_NAME, "kalendarz")))
         all_events.extend(parse_calendar_view(driver))
 
-        # ZMIANA NA NASTĘPNY MIESIĄC
         print("-> Przełączam na następny miesiąc...")
         try:
             driver.execute_script("""
