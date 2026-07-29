@@ -1,6 +1,7 @@
 import json
 import time
 from scraper import get_librus_data
+from notifier import notify_all
 
 DB_FILE = "history.json"
 MD_FULL_CALENDAR_FILE = "Librus_Pelny_Terminarz.md"
@@ -111,4 +112,8 @@ if __name__ == "__main__":
     print("Rozpoczynam analizę terminarza...")
     keys_updated_now, current_session, full_db = check_for_updates()
     generate_unified_calendar(keys_updated_now, current_session, full_db)
+    
+    # Wysyłamy powiadomienia
+    notify_all(keys_updated_now, current_session, full_db, MD_FULL_CALENDAR_FILE)
+    
     print("\nProces zakończony.")

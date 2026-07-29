@@ -2,14 +2,12 @@ import os
 import time
 from datetime import datetime
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
-from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
@@ -93,7 +91,7 @@ def get_librus_data():
     chrome_options.add_argument("--disable-gpu") 
     chrome_options.page_load_strategy = 'eager' # Nie czeka na załadowanie ciężkich reklam
     
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    driver = webdriver.Chrome(options=chrome_options)
     driver.set_page_load_timeout(30) # Sztywny limit 30 sekund na załadowanie strony
     wait = WebDriverWait(driver, 15)
     
