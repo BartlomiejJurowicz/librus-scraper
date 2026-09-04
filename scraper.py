@@ -2,7 +2,7 @@ import os
 import time
 from datetime import datetime
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -82,29 +82,17 @@ def parse_calendar_view(driver):
     return extracted_events
 
 def get_librus_data():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless") 
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    firefox_options = FirefoxOptions()
+    firefox_options.add_argument("-headless") 
     
-    # Podstawa dla kontenerów / CI
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu") 
+    # W Firefoksie rozmiar okna ustawia się nieco inaczej
+    firefox_options.add_argument("--width=1920")
+    firefox_options.add_argument("--height=1080")
     
-    # --- NOWE FLAGI (Ciężka artyleria dla GitHub Actions) ---
-    # Ta flaga jest często "magicznym" rozwiązaniem problemu z rendererem w CI
-    chrome_options.add_argument("--remote-debugging-port=9222") 
-    chrome_options.add_argument("--disable-setuid-sandbox")
-    chrome_options.add_argument("--disable-extensions")
-    
-    # Opcjonalne odciążenie (Librus tego nie potrzebuje, a zyskamy na stabilności)
-    chrome_options.add_argument("--disable-notifications")
-    
-    chrome_options.page_load_strategy = 'normal' 
-    
-    driver = webdriver.Chrome(options=chrome_options)
-    driver.set_page_load_timeout(45) 
+    # Firefox zazwyczaj nie potrzebuje flag typu --no-sandbox, sam świetnie radzi sobie w CI
+    print("-> Uruchamiam przeglądarkę Firefox...")
+    driver = webdriver.Firefox(options=firefox_options)
+    driver.set_page_load_timeout(45)
     wait = WebDriverWait(driver, 15)
     
     all_events = []
