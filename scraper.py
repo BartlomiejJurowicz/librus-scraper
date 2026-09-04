@@ -83,16 +83,24 @@ def parse_calendar_view(driver):
 
 def get_librus_data():
     chrome_options = Options()
-    chrome_options.add_argument("--headless=new") 
+    # 1. Zmieniamy 'new' na klasyczny tryb headless (jest znacznie stabilniejszy w CI/CD)
+    chrome_options.add_argument("--headless") 
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu") 
-    chrome_options.page_load_strategy = 'eager' # Nie czeka na załadowanie ciężkich reklam
+    
+    # 2. Dodajemy flagi zapobiegające "zamarzaniu" renderera:
+    chrome_options.add_argument("--disable-features=VizDisplayCompositor")
+    chrome_options.add_argument("--disable-software-rasterizer")
+    
+    # 3. Zmieniamy z 'eager' na 'normal'. Będzie minimalnie wolniej, ale bezpieczniej dla renderera
+    chrome_options.page_load_strategy = 'normal' 
     
     driver = webdriver.Chrome(options=chrome_options)
-    driver.set_page_load_timeout(30) # Sztywny limit 30 sekund na załadowanie strony
+    # Zwiększamy sztywny limit na wypadek, gdyby GitHub miał gorszy dzień
+    driver.set_page_load_timeout(45) 
     wait = WebDriverWait(driver, 15)
     
     all_events = []
