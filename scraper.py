@@ -83,23 +83,27 @@ def parse_calendar_view(driver):
 
 def get_librus_data():
     chrome_options = Options()
-    # 1. Zmieniamy 'new' na klasyczny tryb headless (jest znacznie stabilniejszy w CI/CD)
     chrome_options.add_argument("--headless") 
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    
+    # Podstawa dla kontenerów / CI
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu") 
     
-    # 2. Dodajemy flagi zapobiegające "zamarzaniu" renderera:
-    chrome_options.add_argument("--disable-features=VizDisplayCompositor")
-    chrome_options.add_argument("--disable-software-rasterizer")
+    # --- NOWE FLAGI (Ciężka artyleria dla GitHub Actions) ---
+    # Ta flaga jest często "magicznym" rozwiązaniem problemu z rendererem w CI
+    chrome_options.add_argument("--remote-debugging-port=9222") 
+    chrome_options.add_argument("--disable-setuid-sandbox")
+    chrome_options.add_argument("--disable-extensions")
     
-    # 3. Zmieniamy z 'eager' na 'normal'. Będzie minimalnie wolniej, ale bezpieczniej dla renderera
+    # Opcjonalne odciążenie (Librus tego nie potrzebuje, a zyskamy na stabilności)
+    chrome_options.add_argument("--disable-notifications")
+    
     chrome_options.page_load_strategy = 'normal' 
     
     driver = webdriver.Chrome(options=chrome_options)
-    # Zwiększamy sztywny limit na wypadek, gdyby GitHub miał gorszy dzień
     driver.set_page_load_timeout(45) 
     wait = WebDriverWait(driver, 15)
     
