@@ -181,8 +181,21 @@ def get_librus_data():
             print("Nie udało się załadować kolejnego miesiąca.")
 
     except Exception as e:
-        driver.save_screenshot("error_headless.png")
-        raise e
+        print("\n==================================================")
+        print("❌ WYSTĄPIŁ BŁĄD KRYTYCZNY - ZBIERAM LOGI DO DEBUGOWANIA")
+        print("==================================================")
+        try:
+            driver.save_screenshot("error_headless.png")
+            print("1. Zapisano zrzut ekranu do: error_headless.png")
+            print(f"2. Obecny URL w przeglądarce: {driver.current_url}")
+            print("\n3. --- POCZĄTEK KODU HTML STRONY (PAGE SOURCE) ---")
+            print(driver.page_source)
+            print("--- KONIEC KODU HTML STRONY ---")
+        except Exception as debug_err:
+            print(f"Nie udało się pobrać szczegółowych logów z przeglądarki: {debug_err}")
+        print("==================================================\n")
+        
+        raise e # Przekazujemy właściwy błąd dalej, żeby wywalił Workflow
 
     finally:
         driver.quit()
