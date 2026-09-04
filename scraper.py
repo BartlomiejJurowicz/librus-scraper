@@ -100,16 +100,19 @@ def get_librus_data():
     try:
         print("-> Próbuję połączyć się z portalem Librus...")
         # System 3 prób w przypadku opóźnień sieciowych
+        # System 3 prób w przypadku opóźnień sieciowych
         for attempt in range(3):
             try:
-                driver.get("https://portal.librus.pl/rodzina")
-                break # Sukces, wychodzimy z pętli
+                print(f"   Próba {attempt + 1}/3 wejścia na Synergię...")
+                # Omijamy portal i wchodzimy bezpośrednio na stronę docelową
+                driver.get("https://synergia.librus.pl")
+                break 
             except Exception as e:
                 print(f"   Próba {attempt + 1}/3 nieudana. Ponawiam za 5 sekund...")
                 time.sleep(5)
                 if attempt == 2:
-                    raise e # Wyrzuca błąd tylko jeśli wszystkie 3 próby zawiodą
-
+                    raise e
+                    
         time.sleep(2) 
         
         # Agresywne usuwanie ciasteczek
